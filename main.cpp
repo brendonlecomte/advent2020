@@ -1,7 +1,7 @@
 #include "fileReader.h"
 #include <algorithm>
-#include <numeric>
 #include <functional>
+#include <numeric>
 #include <string>
 #include <vector>
 
@@ -10,8 +10,6 @@ struct treeMap {
   std::pair<int, int> position{0, 0};
   int width = 31; // probably
   int height = 322;
-  int slopex = 1;
-  int slopey = 3;
 
   void print() {
     std::cout << "Height: " << tree_map.size() << std::endl;
@@ -28,36 +26,31 @@ struct treeMap {
   }
 
   void reset() {
-    position = std::pair<int, int> {0,0};
+    position = std::pair<int, int>{0, 0};
+    height = tree_map.size() - 1; // heigh is one less than size
+    // use size below because it gets modulo'd in the math
+    width = tree_map[0].size();
   }
 
-  std::pair<int, int> step() {
+  std::pair<int, int> step(std::pair<int, int> slope) {
     auto [x, y] = position;
-    x = x + slopex;
-    int _y = y + slopey;
+    x = x + std::get<0>(slope);
+    int _y = y + std::get<1>(slope);
     y = _y % width;
     position = std::pair<int, int>{x, y};
     return position;
   }
 
   bool isTree() {
-    auto [x, y] = position;
-    // std::cout << x << "," << y << std::endl;
-    return (tree_map[x][y] == 1);
+    return (tree_map[std::get<0>(position)][std::get<1>(position)] == 1);
   }
 
-  bool isBottom() {
-    auto [x, y] = position;
-    return (x == height);
-  }
+  bool isBottom() { return (std::get<0>(position) == height); }
 
-  int traverse(std::pair<int, int> slope) {
+  int traverse(std::pair<int, int> sl) {
     int count = 0;
-    auto [x, y] = slope;
-    slopex = x;
-    slopey = y;
     while (!isBottom()) {
-      auto [x, y] = step();
+      step(sl);
       if (isTree())
         count++;
     }
@@ -78,14 +71,11 @@ int main() {
                map.tree_map.push_back(row);
              });
 
-  // map.print();
-  //std::vector<std::pair<int, int>> slopes = {{1,3}};
+  // std::vector<std::pair<int, int>> slopes = {{1,3}};
+  map.reset();
+  map.print();
   std::vector<std::pair<int, int>> slopes = {
-                                          {1, 1},
-                                          {1, 3},
-                                          {1, 5},
-                                          {1, 7},
-                                          {2, 1},
+      {1, 1}, {1, 3}, {1, 5}, {1, 7}, {2, 1},
   };
 
   std::vector<int> trees;
@@ -95,9 +85,9 @@ int main() {
     std::cout << "Trees: " << count << std::endl;
     map.reset();
   }
-  auto total = std::accumulate(trees.begin(), trees.end(), 1LL, std::multiplies<long long int>());
+  auto total = std::accumulate(trees.begin(), trees.end(), 1LL,
+                               std::multiplies<long long int>());
   std::cout << "Total: " << total << std::endl;
-
 
   return 0;
 }
